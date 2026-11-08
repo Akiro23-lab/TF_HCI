@@ -15,9 +15,9 @@ const EXERCISES = [
 ];
 
 const PAST_SESSIONS = [
-  { date: '28 oct', text: 'Sentadilla 60 kg × 8 (4 series)' },
-  { date: '25 oct', text: 'Sentadilla 57,5 kg × 8 (4 series)' },
-  { date: '21 oct', text: 'Sentadilla 55 kg × 8 (4 series)' }
+  { date: '28 oct', day: 28, text: 'Sentadilla 60 kg × 8 (4 series)' },
+  { date: '25 oct', day: 25, text: 'Sentadilla 57,5 kg × 8 (4 series)' },
+  { date: '21 oct', day: 21, text: 'Sentadilla 55 kg × 8 (4 series)' }
 ];
 
 const CLIENTS = [
@@ -56,10 +56,15 @@ const state = {
   restSeconds: 90,                             // duración del descanso (HU-008)
   restStart: 0,
   restTimer: null,
-  selectedClient: null
+  selectedClient: null,
+  editing: false,                              // HU-003: corrigiendo la última serie
+  editDeadline: 0,                             // HU-003: hasta cuándo se puede corregir
+  finished: false                              // HU-031: la sesión ya se cerró
 };
 
 const TOTAL_SETS = EXERCISES.reduce((sum, ex) => sum + ex.sets, 0);
+
+let activeFilter = 'Todos';                   // filtro del panel del entrenador (HU-044)
 
 
 /* ---------- 3. Utilidades ---------- */
@@ -75,15 +80,18 @@ const completedExercises = () =>
 
 let toastTimer;
 
-function showToast(text, withUndo) {
+function showToast(text, withActions) {
   $('toast-txt').textContent = text;
-  $('undo').hidden = !withUndo;
+  $('undo').hidden = !withActions;
+  if ($('fix')) {
+    $('fix').hidden = !withActions;
+  }
   $('toast').hidden = false;
 
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => {
     $('toast').hidden = true;
-  }, withUndo ? 10000 : 3000);       // HU-003: 10 s para deshacer
+  }, withActions ? 10000 : 3000);    // HU-003: 10 s para corregir o deshacer
 }
 
 
@@ -157,6 +165,7 @@ function renderTrain() {
 
   $('load').textContent = fmt(state.load) + ' kg';
   $('reps').textContent = state.reps;
+  $('b-register').textContent = state.editing ? 'Actualizar serie' : 'Registrar serie';
 
   // HU-029: progreso de la sesión
   $('prog').textContent = `${completedSets()} / ${TOTAL_SETS} series`;
@@ -205,6 +214,56 @@ document.querySelectorAll('[data-reps]').forEach((button) => {
   });
 });
 
+// HU-002: cambiar repeticiones deslizando, con la rueda del mouse o con las flechas
+const repsPanel = $('reps-panel');
+let dragStartY = null;
+
+function changeReps(delta) {
+  state.reps = Math.max(1, state.reps + delta);
+  renderTrain();
+}
+
+repsPanel?.addEventListener('pointerdown', (event) => {
+  if (event.target.closest('button')) {
+    return;                                    // los botones − / + funcionan aparte
+  }
+  dragStartY = event.clientY;
+  repsPanel.setPointerCapture(event.pointerId);
+});
+
+repsPanel?.addEventListener('pointerup', (event) => {
+  if (dragStartY === null) {
+    return;
+  }
+  const distance = event.clientY - dragStartY;
+  dragStartY = null;
+
+  if (distance <= -30) {
+    changeReps(1);                             // deslizar hacia arriba: +1
+  } else if (distance >= 30) {
+    changeReps(-1);                            // deslizar hacia abajo: −1
+  }
+});
+
+repsPanel?.addEventListener('pointercancel', () => {
+  dragStartY = null;
+});
+
+repsPanel?.addEventListener('wheel', (event) => {
+  event.preventDefault();
+  changeReps(event.deltaY < 0 ? 1 : -1);
+}, { passive: false });
+
+repsPanel?.addEventListener('keydown', (event) => {
+  if (event.key === 'ArrowUp') {
+    event.preventDefault();
+    changeReps(1);
+  } else if (event.key === 'ArrowDown') {
+    event.preventDefault();
+    changeReps(-1);
+  }
+});
+
 // Registrar serie (HU-001) y repetir la última (HU-005)
 function registerSet(load, reps) {
   const ex = EXERCISES[state.exercise];
@@ -216,13 +275,45 @@ function registerSet(load, reps) {
 
   state.sets[state.exercise].push({ load, reps, rest: null });
   state.lastSet = { load, reps };
+  state.editDeadline = Date.now() + 10000;     // HU-003: ventana de 10 s para corregir
+  state.editing = false;
 
   renderTrain();
+
+  // HU-031: al registrar la última serie de la rutina, la sesión se cierra sola
+  if (completedSets() === TOTAL_SETS) {
+    finishSession();
+    showToast('Rutina completada: la sesión se cerró automáticamente.');
+    return;
+  }
+
   showToast(`Serie ${state.sets[state.exercise].length} registrada · ${fmt(load)} kg × ${reps}`, true); // HU-007
   startRest();                                                                                           // HU-008
 }
 
-$('b-register').addEventListener('click', () => registerSet(state.load, state.reps));
+// HU-001 registra una serie nueva; HU-003 actualiza la última si se está corrigiendo
+$('b-register').addEventListener('click', () => {
+  if (!state.editing) {
+    registerSet(state.load, state.reps);
+    return;
+  }
+
+  state.editing = false;
+
+  if (Date.now() > state.editDeadline) {
+    renderTrain();
+    showToast('La ventana de 10 segundos para corregir ya venció.');
+    return;
+  }
+
+  const last = state.sets[state.exercise].slice(-1)[0];
+  last.load = state.load;
+  last.reps = state.reps;
+  state.lastSet = { load: last.load, reps: last.reps };
+
+  renderTrain();
+  showToast(`Serie actualizada · ${fmt(last.load)} kg × ${last.reps}`);
+});
 
 $('b-repeat').addEventListener('click', () => {
   if (state.lastSet) {
@@ -255,10 +346,29 @@ $('undo').addEventListener('click', () => {
 
   if (removed) {
     state.lastSet = state.sets[state.exercise].slice(-1)[0] || null;
+    state.editing = false;
     closeRest(true);
     renderTrain();
     showToast('Serie deshecha.');
   }
+});
+
+// Corregir la última serie dentro de los 10 s (HU-003)
+$('fix')?.addEventListener('click', () => {
+  const last = state.sets[state.exercise].slice(-1)[0];
+
+  if (!last || Date.now() > state.editDeadline) {
+    showToast('La ventana de 10 segundos para corregir ya venció.');
+    return;
+  }
+
+  state.load = last.load;
+  state.reps = last.reps;
+  state.editing = true;
+
+  closeRest(true);                             // oculta el descanso para editar
+  renderTrain();
+  showToast('Ajusta carga o repeticiones y pulsa «Actualizar serie».');
 });
 
 
@@ -392,6 +502,7 @@ document.querySelectorAll('[data-close-rest]').forEach((button) => {
   button.addEventListener('click', () => closeRest(false));
 });
 
+
 /* ---------- 8. Rutina y cierre de sesión (HU-026, 029, 031, 036) ---------- */
 function renderRoutine() {
   $('routine').innerHTML = EXERCISES.map((ex, i) => {
@@ -401,24 +512,37 @@ function renderRoutine() {
   }).join('');
 }
 
-$('b-finish').addEventListener('click', () => {
+function finishSession() {
   const volume = state.sets.flat().reduce((sum, s) => sum + s.load * s.reps, 0);
+  const pending = TOTAL_SETS - completedSets();
 
-  PAST_SESSIONS.unshift({
-    date: 'Hoy',
-    text: `${completedSets()} series · ${fmt(volume)} kg de volumen`
-  });
+  if (!state.finished) {
+    PAST_SESSIONS.unshift({
+      date: 'Hoy',
+      text: `${completedSets()} series · ${fmt(volume)} kg de volumen`
+    });
+    state.finished = true;
+  }
 
   goTo('history');
 
-  // HU-036: resumen automático
+  // HU-036: resumen automático, con opción de cerrarlo conservando los datos
   const summary = $('summary');
   summary.hidden = false;
   summary.innerHTML =
     '<h2>Resumen de la sesión</h2>' +
     `<p>${completedSets()} de ${TOTAL_SETS} series · volumen total ${fmt(volume)} kg · ` +
-    `${completedExercises()}/${EXERCISES.length} ejercicios completos.</p>`;
-});
+    `${completedExercises()}/${EXERCISES.length} ejercicios completos.</p>` +
+    (pending > 0 ? `<p>Quedaron ${pending} series pendientes.</p>` : '<p>¡Rutina completada!</p>') +
+    '<button class="btn" id="close-summary">Cerrar resumen</button>';
+
+  $('close-summary').addEventListener('click', () => {
+    summary.hidden = true;                     // los datos siguen en el historial
+  });
+}
+
+// HU-031: cierre manual (también válido con series pendientes)
+$('b-finish').addEventListener('click', finishSession);
 
 
 /* ---------- 9. Historial y gráfico (HU-032, 033) ---------- */
@@ -427,6 +551,7 @@ function renderHistory() {
     .map((s) => `<li><strong>${s.date}</strong> — ${s.text}</li>`)
     .join('');
   drawChart();
+  drawCalendar();
 }
 
 function drawChart() {
@@ -444,9 +569,46 @@ function drawChart() {
 
 $('period').addEventListener('change', drawChart);
 
+// HU-032: calendario de octubre con detalle por fecha
+function drawCalendar() {
+  if (!$('calendar')) {
+    return;                                    // el HTML del calendario no está en la página
+  }
+
+  const firstWeekday = 3;                      // 1 de octubre de 2026 cae jueves (lunes = 0)
+  const daysInMonth = 31;
+
+  const headers = ['L', 'M', 'X', 'J', 'V', 'S', 'D']
+    .map((d) => `<span class="cal-h">${d}</span>`)
+    .join('');
+  const blanks = '<span></span>'.repeat(firstWeekday);
+
+  const days = Array.from({ length: daysInMonth }, (_, i) => {
+    const day = i + 1;
+    const trained = PAST_SESSIONS.some((s) => s.day === day);
+    return `<button class="cal-d${trained ? ' on' : ''}" data-day="${day}" ` +
+           `aria-label="${day} de octubre${trained ? ', con entrenamiento' : ''}">${day}</button>`;
+  }).join('');
+
+  $('calendar').innerHTML = headers + blanks + days;
+}
+
+$('calendar')?.addEventListener('click', (event) => {
+  const button = event.target.closest('[data-day]');
+  if (!button) {
+    return;
+  }
+
+  const day = Number(button.dataset.day);
+  const session = PAST_SESSIONS.find((s) => s.day === day);
+
+  $('day-detail').textContent = session
+    ? `${session.date}: ${session.text}`
+    : `El ${day} de octubre no hay entrenamientos registrados.`;
+});
+
 
 /* ---------- 10. Panel del entrenador (HU-039, 040, 041, 044, 045, 046) ---------- */
-let activeFilter = 'Todos';
 
 // HU-039 y HU-041: lista de clientes con su carga actual
 function renderClients() {

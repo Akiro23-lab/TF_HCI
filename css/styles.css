@@ -209,6 +209,9 @@ h3 {
 }
 
 .brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   font-size: 1.5rem;
   font-weight: 800;
   color: #FFFFFF;
@@ -296,10 +299,13 @@ h3 {
 
 /* Marcador de imagen: reemplazar por la foto exportada de Figma (assets/images) */
 .photo {
+  display: block;
+  width: 100%;
   height: 260px;
   margin: calc(var(--s) * 2) 0;
   border-radius: var(--r);
-  background: linear-gradient(135deg, var(--panel), var(--sec));
+  object-fit: cover;               /* recorta la foto sin deformarla */
+  background: var(--panel);        /* color mientras carga la imagen */
 }
 
 
@@ -542,4 +548,45 @@ svg text {
     transition: none !important;
     animation: none !important;
   }
+}
+
+
+
+
+/* ---------- 14. Gesto de repeticiones (HU-002) ---------- */
+#reps-panel {
+  cursor: ns-resize;
+  user-select: none;
+  touch-action: none;
+}
+
+/* ---------- 15. Calendario (HU-032) ---------- */
+.calendar {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+  margin: var(--s) 0;
+}
+
+.cal-h {
+  color: var(--bruma);
+  font-size: 0.875rem;
+  text-align: center;
+}
+
+.cal-d {
+  min-height: 44px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--panel);
+  color: #FFFFFF;
+  font: inherit;
+  cursor: pointer;
+}
+
+.cal-d.on {
+  border-color: var(--acc);
+  background: var(--acc);
+  color: var(--tinta);
+  font-weight: 600;
 }
