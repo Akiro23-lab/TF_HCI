@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PeakSet · Registro de entrenamiento</title>
+
+  <!-- Fuente Inter (guía de estilos 4.1.2) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Hoja de estilos externa -->
+  <link rel="stylesheet" href="../css/styles.css">
+</head>
+
+<body>
+
+  <!-- ========== HU-051: Elegir perspectiva (pantalla de entrada) ========== -->
+  <main id="v-role" class="role" aria-labelledby="t-role">
+    <p class="crumb">PeakSet / Elegir perspectiva</p>
+    <h1 id="t-role">Elige tu perspectiva</h1>
+    <p class="lead">Tu cuenta está lista. Selecciona cómo quieres usar PeakSet para continuar.</p>
+
+    <div class="role-grid">
+      <section class="card">
+        <h2>Quiero entrenar</h2>
+        <div class="photo" role="img" aria-label="Atleta con barra en el gimnasio"></div>
+        <p>Rutinas guiadas · Registro rápido · Tu progreso en un solo lugar.</p>
+        <button class="btn primary" data-role="atleta">Comenzar como atleta</button>
+      </section>
+
+      <section class="card">
+        <h2>Soy entrenador</h2>
+        <div class="photo" role="img" aria-label="Entrenador supervisando a un cliente"></div>
+        <p>Supervisa clientes · Ajusta cargas · Gestiona cada sesión.</p>
+        <button class="btn primary" data-role="entrenador">Comenzar como entrenador</button>
+      </section>
+    </div>
+
+    <p id="role-msg" class="hint" role="status">
+      Selecciona una perspectiva para acceder al menú principal. No puedes continuar sin elegir un rol.
+    </p>
+  </main>
+
+
+  <!-- ========== Aplicación (se muestra al elegir el rol) ========== -->
+  <div id="app" class="app" hidden>
+
+    <!-- Barra lateral -->
+    <aside class="side">
+      <div class="brand">PeakSet</div>
+      <nav aria-label="Principal">
+        <ul id="nav"></ul>
+      </nav>
+      <div class="user">
+        <strong id="user-name">Ana Torres</strong>
+        <small>En línea · Sincronizado</small>
+      </div>
+    </aside>
+
+    <div class="main">
+
+      <!-- Barra superior -->
+      <header class="top">
+        <span id="crumb">PeakSet</span>
+        <button class="link" type="button">Modo claro</button>
+      </header>
+
+      <main class="content">
+
+        <!-- ===== Entrenamiento: HU-001, 002, 003, 004, 005, 007, 014, 015, 016, 017, 019, 027, 028, 029, 031 ===== -->
+        <section id="v-train" class="view" aria-labelledby="t-train">
+          <p class="eyebrow">Ana Torres · Piernas A</p>
+          <h1 id="t-train">Registra tu siguiente serie</h1>
+
+          <div class="cols">
+
+            <!-- Columna izquierda: ejercicio actual -->
+            <div class="card teal">
+              <h2 id="ex-name">Sentadilla con barra</h2>
+              <p id="ex-meta"></p>
+
+              <div class="panels">
+                <div class="panel">
+                  <span>Carga</span>
+                  <output id="load" class="big" aria-live="polite">60 kg</output>
+                  <div class="steps">
+                    <button class="btn" data-load="-2.5">− 2,5</button>
+                    <button class="btn" data-load="2.5">+ 2,5</button>
+                  </div>
+                </div>
+
+                <div class="panel">
+                  <span>Repeticiones</span>
+                  <output id="reps" class="big" aria-live="polite">8</output>
+                  <div class="steps">
+                    <button class="btn" data-reps="-1">− 1</button>
+                    <button class="btn" data-reps="1">+ 1</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- HU-014 a HU-017: sugerencia de peso -->
+              <p id="suggest" class="suggest" aria-live="polite"></p>
+
+              <button id="b-register" class="btn primary xl">Registrar serie</button>
+
+              <div class="row3">
+                <button id="b-repeat" class="btn">Repetir serie</button>
+                <button class="btn" type="button" aria-disabled="true" title="Disponible en una próxima versión">Guía técnica</button>
+                <button id="b-hist" class="btn" aria-expanded="false" aria-controls="inline-hist">Historial</button>
+              </div>
+
+              <ul id="inline-hist" class="plain" hidden></ul>
+            </div>
+
+            <!-- Columna derecha: progreso y series -->
+            <div>
+              <div class="card teal">
+                <h3>Progreso de la sesión</h3>
+                <p id="prog" class="big sm">0 / 13 series</p>
+                <progress id="bar" max="13" value="0" aria-label="Progreso de la sesión"></progress>
+                <p id="prog-meta" class="small"></p>
+                <button class="btn" data-go="routine">Ver rutina completa</button>
+              </div>
+
+              <div class="card">
+                <h3>Series de este ejercicio</h3>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Serie</th>
+                      <th>Carga × reps</th>
+                      <th>Estado / descanso</th>
+                    </tr>
+                  </thead>
+                  <tbody id="sets"></tbody>
+                </table>
+              </div>
+
+              <p id="next" class="small"></p>
+              <button id="b-next" class="btn">Siguiente ejercicio</button>
+              <button id="b-finish" class="btn">Finalizar sesión</button>
+            </div>
+
+          </div>
+        </section>
+
+
+        <!-- ===== Rutina: HU-026, 029 ===== -->
+        <section id="v-routine" class="view" hidden aria-labelledby="t-routine">
+          <h1 id="t-routine">Tu rutina de hoy</h1>
+          <ol id="routine" class="card list"></ol>
+        </section>
+
+
+        <!-- ===== Historial y progreso: HU-031, 032, 033, 036 ===== -->
+        <section id="v-history" class="view" hidden aria-labelledby="t-history">
+          <h1 id="t-history">Historial</h1>
+
+          <div class="cols">
+            <div class="card">
+              <h2>Entrenamientos por fecha</h2>
+              <ul id="sessions" class="plain"></ul>
+            </div>
+
+            <div class="card">
+              <h2>Evolución · Sentadilla con barra</h2>
+              <label>Periodo
+                <select id="period">
+                  <option value="3">Últimos 3 meses</option>
+                  <option value="1">Último mes</option>
+                </select>
+              </label>
+              <svg id="chart" viewBox="0 0 360 160" role="img" aria-label="Gráfico de carga máxima por mes"></svg>
+            </div>
+          </div>
+
+          <!-- HU-036: resumen automático al finalizar la sesión -->
+          <div id="summary" class="card teal" hidden aria-live="polite"></div>
+        </section>
+
+
+        <!-- ===== Panel del entrenador: HU-039, 040, 041, 044, 045, 046 ===== -->
+        <section id="v-clients" class="view" hidden aria-labelledby="t-clients">
+          <h1 id="t-clients">Clientes asignados</h1>
+
+          <!-- HU-044: filtro por grupo muscular -->
+          <div class="chips" role="group" aria-label="Filtrar por grupo muscular">
+            <button class="chip on" data-f="Todos">Todos</button>
+            <button class="chip" data-f="Piernas">Piernas</button>
+            <button class="chip" data-f="Espalda">Espalda</button>
+          </div>
+
+          <div class="cols">
+            <!-- HU-039 y HU-041: lista de clientes con su carga -->
+            <div class="card">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Cliente</th>
+                    <th>Grupo</th>
+                    <th>Ejercicio</th>
+                    <th>Carga actual</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="clients"></tbody>
+              </table>
+            </div>
+
+            <!-- HU-040, 045, 046: editar carga, repeticiones y series -->
+            <div class="card" id="editor" hidden aria-live="polite">
+              <h2 id="ed-name"></h2>
+
+              <label>Carga (kg)
+                <input id="ed-load" type="number" step="2.5" min="0">
+              </label>
+              <label>Repeticiones
+                <input id="ed-reps" type="number" min="1">
+              </label>
+              <label>Series
+                <input id="ed-sets" type="number" min="1">
+              </label>
+
+              <button id="ed-save" class="btn primary">Guardar cambios</button>
+              <p id="ed-msg" class="hint" role="status"></p>
+
+              <h3>Historial de cargas</h3>
+              <ul id="ed-hist" class="plain"></ul>
+            </div>
+          </div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+    <!-- ========== Descanso: HU-004, 008, 009, 010, 011 ========== -->
+  <div id="rest" class="modal" role="dialog" aria-modal="true" aria-labelledby="t-rest" hidden>
+    <div class="card">
+      <h2 id="t-rest">Descanso entre series</h2>
+      <p id="rest-sub" class="small"></p>
+
+      <!-- Reloj, estado y barra de progreso (HU-011) -->
+      <div class="clock-box">
+        <output id="clock" class="clock" aria-live="off">01:30</output>
+        <p id="rest-state">En curso</p>
+        <progress id="rest-bar" max="100" value="0" aria-label="Progreso del descanso"></progress>
+      </div>
+
+      <p id="rest-msg" role="status">Ajusta o finaliza el descanso según tu recuperación.</p>
+
+      <!-- HU-010: ajustar tiempo. "Pausar" es solo visual (HU-012 no está en las 30) -->
+      <div class="steps3">
+        <button class="btn" type="button" aria-disabled="true" title="Disponible en una próxima versión">Pausar</button>
+        <button class="btn" data-rest="-30">− 30 s</button>
+        <button class="btn" data-rest="30">+ 30 s</button>
+      </div>
+
+      <!-- HU-009: silenciar sonido y mantener vibración -->
+      <label class="chk">
+        <input id="mute" type="checkbox"> Silenciar sonido (mantener vibración)
+      </label>
+
+      <button id="rest-continue" class="btn primary" data-close-rest>Continuar entrenando</button>
+      <button class="btn" data-close-rest>Finalizar descanso</button>
+
+      <p id="rest-foot" class="small"></p>
+    </div>
+  </div>
+
+  <!-- HU-003 y HU-007: confirmación con opción de deshacer -->
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden>
+    <span id="toast-txt"></span>
+    <button id="undo" class="link">Deshacer</button>
+  </div>
+
+  <script src="../js/main.js"></script>
+</body>
+
+</html>
