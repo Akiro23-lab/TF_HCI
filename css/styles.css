@@ -604,8 +604,26 @@ svg text {
   padding: 0 calc(var(--s) * 3);
 }
 
-/* ---------- 17. Acciones de la barra superior ---------- */
-.top-actions {
-  display: flex;
-  gap: calc(var(--s) * 3);
+/* ---------- 17. Barra superior ---------- */
+.top {
+  align-items: center;
+}
+
+.top .btn {
+  min-height: 44px;
+  padding: 0 calc(var(--s) * 2);
+  font-size: 0.875rem;
+}
+
+/* ---------- 18. Botones − / + de Carga y Repeticiones ---------- */
+.card.teal .panel .btn {
+  border-color: var(--acc);        /* borde azul para que se distinga del fondo */
+  background: var(--card);
+  color: #FFFFFF;
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.card.teal .panel .btn:hover {
+  background: #12566B;
 }
