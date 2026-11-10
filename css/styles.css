@@ -603,3 +603,9 @@ svg text {
   margin-left: auto;              /* lo pega a la derecha */
   padding: 0 calc(var(--s) * 3);
 }
+
+/* ---------- 17. Acciones de la barra superior ---------- */
+.top-actions {
+  display: flex;
+  gap: calc(var(--s) * 3);
+}

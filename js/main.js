@@ -663,3 +663,11 @@ $('ed-save').addEventListener('click', () => {
   $('ed-msg').textContent = `Cambios aplicados: ${fmt(load)} kg × ${reps} · ${sets} series.`;
   renderClients();
 });
+
+/* ---------- 12. Cambiar de perspectiva (volver a la pantalla de entrada) ---------- */
+$('b-switch')?.addEventListener('click', () => {
+  state.role = null;
+  $('app').hidden = true;
+  $('v-role').hidden = false;
+  document.querySelector('#v-role [data-role]').focus();   // foco en la primera opción
+});
