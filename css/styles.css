@@ -551,8 +551,6 @@ svg text {
 }
 
 
-
-
 /* ---------- 14. Gesto de repeticiones (HU-002) ---------- */
 #reps-panel {
   cursor: ns-resize;
@@ -589,4 +587,19 @@ svg text {
   background: var(--acc);
   color: var(--tinta);
   font-weight: 600;
+}
+
+/* ---------- 16. Botón de descarga de la app (entrada) ---------- */
+.role-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: calc(var(--s) * 2);
+}
+
+.role-top .btn {
+  width: auto;                    /* anula el ancho completo de .role .btn */
+  min-height: 48px;
+  margin-left: auto;              /* lo pega a la derecha */
+  padding: 0 calc(var(--s) * 3);
 }
