@@ -664,6 +664,30 @@ $('ed-save').addEventListener('click', () => {
   renderClients();
 });
 
+
+/* ---------- 11. Descarga de la app (pantalla de entrada) ---------- */
+const appModal = $('app-modal');
+
+function closeAppModal() {
+  appModal.hidden = true;
+  $('b-app').focus();
+}
+
+$('b-app')?.addEventListener('click', () => {
+  appModal.hidden = false;
+  $('app-close').focus();
+});
+
+$('app-close')?.addEventListener('click', closeAppModal);
+
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape' && appModal && !appModal.hidden) {
+    closeAppModal();
+  }
+});
+
+
+
 /* ---------- 12. Cambiar de perspectiva (volver a la pantalla de entrada) ---------- */
 $('b-switch')?.addEventListener('click', () => {
   state.role = null;
