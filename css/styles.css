@@ -627,3 +627,41 @@ svg text {
 .card.teal .panel .btn:hover {
   background: #12566B;
 }
+
+/* ---------- 19. Ventana de descarga de la app (pequeña, fondo difuminado) ---------- */
+#app-modal {
+  background: rgba(3, 32, 44, 0.45);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);            /* difumina lo que hay detrás */
+}
+
+#app-modal .card {
+  width: min(460px, 92vw);               /* más chica que la ventana de descanso */
+  text-align: center;
+}
+
+.stores {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--s);
+}
+
+.store {
+  display: grid;
+  place-items: center;
+  min-height: 48px;
+  border: 1px solid var(--acc);
+  border-radius: var(--r);
+  background: var(--panel);
+  color: #FFFFFF;
+  font-weight: 600;
+}
+
+.contact {
+  display: grid;
+  gap: 4px;
+  padding: 0;
+  list-style: none;
+  color: var(--bruma);
+  font-size: 0.9375rem;
+}
